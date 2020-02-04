@@ -25,7 +25,7 @@ class Client:
             return False
 
         for i in range(self.response_loops):
-            text = input()
+            text = input(">\t")
             net.send_info(text)
             data = net.receive_info()
             print(data)
