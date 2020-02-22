@@ -70,7 +70,7 @@ def main():
     server.bind((IP, PORT))
     threads = []
     exit_signal = threading.Event()
-    logger = Logger("Echo Server Test")
+    logger = Logger("Prime Server")
 
     global batchLock
     batchLock = threading.Lock()

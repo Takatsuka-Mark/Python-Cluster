@@ -35,7 +35,7 @@ class Client:
                 res = self.solveProblem(problem, start, end)
                 net.send_info(res)
                 print(res)
-                time.sleep(.1)
+                time.sleep(1)
 
         except KeyboardInterrupt:
             return False

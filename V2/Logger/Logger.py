@@ -4,7 +4,7 @@ import datetime
 class Logger:
     def __init__(self, instance_name):
         self.instance_name = instance_name
-        self.log = open("../Logger/" + datetime.datetime.now().strftime("%m-%d-%y %H-%M-%S") + " " + str(instance_name) + ".txt", "w")
+        self.log = open("../Logs/" + datetime.datetime.now().strftime("%m-%d-%y %H-%M-%S") + " " + str(instance_name) + ".txt", "w")
 
     def close_logger(self):
         self.log.close()
