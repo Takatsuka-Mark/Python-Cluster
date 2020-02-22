@@ -102,8 +102,13 @@ def main():
     except KeyboardInterrupt:
         print("Keyboard Interrupt Received")
         exit_signal.set()
-        logger.close_logger()
         time.sleep(1)
+        logger.close_logger()
+        for thread in threads:
+            thread.join()
+        print("Our final results are as follows")
+        print(results)
+
 
     for t in threads:
         t.join()
