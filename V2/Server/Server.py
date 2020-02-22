@@ -24,8 +24,7 @@ class ServerThread(threading.Thread):
         logger.write_connect(identification, ip)
 
     def run(self) -> None:
-        # while not self.exit_signal.is_set():
-        for i in range(5 * 2):
+        while not self.exit_signal.is_set():
             data = self.net.receive_data()
 
             # TODO implement this in Server Networking
@@ -108,7 +107,6 @@ def main():
             thread.join()
         print("Our final results are as follows")
         print(results)
-
 
     for t in threads:
         t.join()
