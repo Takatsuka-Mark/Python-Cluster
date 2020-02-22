@@ -1,17 +1,9 @@
 from threading import Thread
 from V2.Client.ClientNetworking import ClientNetworking
+from V2.Problem.Primality import PrimalityTest
+import time
 
 NUM_CLIENTS = 3
-
-
-# class Client(Thread):
-#     def __init__(self):
-#         super().__init__()
-#         self.responseLoops = 4
-#
-#     def run(self) -> None:
-#         pass
-
 
 class Client:
     def __init__(self):
@@ -24,13 +16,33 @@ class Client:
         if not net:
             return False
 
-        for i in range(self.response_loops):
-            text = input(">\t")
-            net.send_info(text)
-            data = net.receive_info()
-            print(data)
+        """Echo Implementation"""
+        # for i in range(self.response_loops):
+        #     text = input(">\t")
+        #     net.send_info(text)
+        #     data = net.receive_info()
+        #     print(data)
+        try:
+            while True:
+                net.send_info("READY")
+                data = net.receive_info()
+                print(data)
+                data = data.split(" ")
 
-        return True
+                start = int(data[0])
+                end = int(data[1])
+                problem = PrimalityTest()
+                res = self.solveProblem(problem, start, end)
+                net.send_info(res)
+                print(res)
+                time.sleep(.1)
+
+        except KeyboardInterrupt:
+            return False
+
+    def solveProblem(self, problem, start, end):
+        problem.run(start, end)
+        return problem.res
 
 
 def main():
