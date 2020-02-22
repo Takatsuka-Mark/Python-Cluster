@@ -1,6 +1,7 @@
 from threading import Thread
 from V2.Client.ClientNetworking import ClientNetworking
 from V2.Problem.Primality import PrimalityTest
+from V2.Problem.Pi import PiTest
 import time
 
 NUM_CLIENTS = 3
@@ -8,14 +9,15 @@ NUM_CLIENTS = 3
 class Client:
     def __init__(self):
         self.response_loops = 4
+        self.problem_type = 0
 
     def run(self):
         net = ClientNetworking()
         net.connect_to_server()
-
         if not net:
             return False
 
+        first_run = True
         """Echo Implementation"""
         # for i in range(self.response_loops):
         #     text = input(">\t")
@@ -25,13 +27,25 @@ class Client:
         try:
             while True:
                 net.send_info("READY")
+                print("Sent Ready")
                 data = net.receive_info()
                 print(data)
-                data = data.split(" ")
 
+                if first_run:
+                    first_run = False
+                    self.problem_type = int(data)
+                    continue
+
+                data = data.split(" ")
                 start = int(data[0])
                 end = int(data[1])
-                problem = PrimalityTest()
+
+                problem = None
+                if self.problem_type == 0:
+                    problem = PrimalityTest()
+                elif self.problem_type == 1:
+                    problem = PiTest()
+
                 res = self.solveProblem(problem, start, end)
                 net.send_info(res)
                 print(res)
@@ -39,6 +53,7 @@ class Client:
 
         except KeyboardInterrupt:
             return False
+
 
     def solveProblem(self, problem, start, end):
         problem.run(start, end)

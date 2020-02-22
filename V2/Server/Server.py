@@ -1,6 +1,7 @@
 from V2.NetworkingConstants import MAX_CONNECTIONS, IP, PORT
 from V2.Logger.Logger import Logger
 from V2.Server.ServerNetworking import ServerNetworking
+from V2.Problem.Pi import pi_sum
 from multiprocessing.pool import ThreadPool
 import threading
 import socket
@@ -13,17 +14,19 @@ global resLock
 
 
 class ServerThread(threading.Thread):
-    def __init__(self, ip, port, conn, exit_signal, logger, identification, batch_size):
+    def __init__(self, ip, port, conn, exit_signal, logger, identification, batch_size, problem_type):
         super().__init__()
         self.net = ServerNetworking(conn, ip, port)
         self.exit_signal = exit_signal
         self.logger = logger
         self.identification = identification
         self.batchSize = batch_size
+        self.problem_type = problem_type
         print("New Socket Thread Started For: {0}:{1}".format(str(ip), str(port)))
         logger.write_connect(identification, ip)
 
     def run(self) -> None:
+        first_contact = True
         while not self.exit_signal.is_set():
             data = self.net.receive_data()
 
@@ -38,6 +41,10 @@ class ServerThread(threading.Thread):
 
             # client is ready to start its next task
             if data == "READY":
+                if first_contact:
+                    first_contact = False
+                    self.net.send_str(str(self.problem_type))
+                    continue
 
                 calc_range = 0
                 # get the current batch that we should calculate
@@ -57,11 +64,13 @@ class ServerThread(threading.Thread):
                     global resLock
                     global results
                     resLock.acquire()
-                    results.extend(data)
-                    print("Current Results:", results)
+                    if self.problem_type == 0:
+                        results.extend(data)
+                        print("Current Results Last 10:", results[-10:])
+                    else:
+                        results += pi_sum(True, data)
+                        print(results)
                     resLock.release()
-
-
 
 
 def main():
@@ -70,7 +79,6 @@ def main():
     server.bind((IP, PORT))
     threads = []
     exit_signal = threading.Event()
-    logger = Logger("Prime Server")
 
     global batchLock
     batchLock = threading.Lock()
@@ -81,17 +89,29 @@ def main():
     global resLock
     resLock = threading.Lock()
 
-    global results
-    results = list()
-
     batch_size = 100
+
+    print_bars()
+    print("\t0:\tPrime Calculator")
+    print("\t1:\tPi Calculator")
+    print_bars()
+
+    global results
+    problemType = int(input("Select the kind of problem to solve (default 0):\t"))
+    logger = None
+    if problemType == 0:
+        logger = Logger("Prime Server")
+        results = list()
+    else:
+        logger = Logger("Pi Server")
+        results = 3
 
     try:
         server_id = 0
         server.listen(4)
         while len(threads) < MAX_CONNECTIONS:
             (conn, (ip, port)) = server.accept()
-            temp_thread = ServerThread(ip, port, conn, exit_signal, logger, server_id, batch_size)
+            temp_thread = ServerThread(ip, port, conn, exit_signal, logger, server_id, batch_size, problemType)
             temp_thread.start()
             threads.append(temp_thread)
             server_id += 1
@@ -110,6 +130,12 @@ def main():
 
     for t in threads:
         t.join()
+
+
+def print_bars():
+    for i in range(0, 80):
+        print("=", end='')
+    print("")
 
 
 if __name__ == '__main__':

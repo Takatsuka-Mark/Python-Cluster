@@ -20,10 +20,3 @@ def isPrime(test):
         if test % i == 0:
             return False
     return True
-
-
-if __name__ == '__main__':
-    prim = PrimalityTest()
-    prim.run(2, 100)
-    print(prim.res)
-    print(len(prim.res))

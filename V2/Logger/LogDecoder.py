@@ -1,4 +1,5 @@
 import os
+from V2.Logger.Radix import radix_lsd
 
 path = "../Logs/"
 
@@ -32,13 +33,18 @@ def main():
     # TODO implement saving to a file
 
     file_reader = open(path + file)
+    number_list = []
     for line in file_reader:
         if "[" in line:
             # strip the line just to the results
             line = line[line.find("[") + 1: line.find("]")]
+            number_list.extend([int(x) for x in line.split(",")])
             print(line)
 
     print()
+    print(number_list)
+    number_list = radix_lsd(number_list)
+    print("sorted:\t", number_list)
     # print("File selected: ", file)
 
     return None
