@@ -54,7 +54,6 @@ class Client:
         except KeyboardInterrupt:
             return False
 
-
     def solveProblem(self, problem, start, end):
         problem.run(start, end)
         return problem.res

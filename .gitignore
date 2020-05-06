@@ -5,3 +5,5 @@ NetworkingConstants.py
 .txt
 
 /V2/Logs/
+/V2-async/Logs/
+/V2-async/tmp/

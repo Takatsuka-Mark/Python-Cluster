@@ -7,6 +7,7 @@ from decimal import *
 import threading
 import socket
 import time
+import asyncio
 
 global batchLock
 global currentBatch
@@ -14,10 +15,14 @@ global results
 global resLock
 
 
+def server_loop(reader, writer, exit_signal, logger, identification, batch_size, problem_type):
+    net = ServerNetworking(reader, writer)
+
+
 class ServerThread(threading.Thread):
-    def __init__(self, ip, port, conn, exit_signal, logger, identification, batch_size, problem_type):
+    def __init__(self, reader, writer, exit_signal, logger, identification, batch_size, problem_type):
         super().__init__()
-        self.net = ServerNetworking(conn, ip, port)
+        self.net = ServerNetworking(reader, writer)
         self.exit_signal = exit_signal
         self.logger = logger
         self.identification = identification
@@ -75,10 +80,10 @@ class ServerThread(threading.Thread):
                     resLock.release()
 
 
-def main():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind((IP, PORT))
+async def main():
+    # server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    # server.bind((IP, PORT))
     threads = []
     exit_signal = threading.Event()
 
@@ -109,16 +114,25 @@ def main():
         results = 3
 
     try:
-        server_id = 0
-        server.listen(4)
-        while len(threads) < MAX_CONNECTIONS:
-            (conn, (ip, port)) = server.accept()
-            temp_thread = ServerThread(ip, port, conn, exit_signal, logger, server_id, batch_size, problemType)
-            temp_thread.start()
-            threads.append(temp_thread)
-            server_id += 1
-        while True:
-            time.sleep(.5)
+        server = await asyncio.start_server(lambda reader, writer: server_loop(reader, writer, exit_signal, logger, 0, batch_size, problemType),
+                                      IP, PORT)
+
+
+
+
+
+
+
+        # server_id = 0
+        # server.listen(4)
+        # while len(threads) < MAX_CONNECTIONS:
+        #     (conn, (ip, port)) = server.accept()
+        #     temp_thread = ServerThread(ip, port, conn, exit_signal, logger, server_id, batch_size, problemType)
+        #     temp_thread.start()
+        #     threads.append(temp_thread)
+        #     server_id += 1
+        # while True:
+        #     time.sleep(.5)
 
     except KeyboardInterrupt:
         print("Keyboard Interrupt Received")
@@ -141,4 +155,4 @@ def print_bars():
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
